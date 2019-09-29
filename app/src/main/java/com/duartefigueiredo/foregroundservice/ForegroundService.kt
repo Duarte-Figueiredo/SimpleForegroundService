@@ -11,14 +11,6 @@ import android.os.IBinder
 import android.support.v4.app.NotificationCompat
 
 
-/**
- * Copyright (c) 2019, CloudPear	.pt		.com  All rights reserved.
- * Project ID: ForegroundService
- * Workfile:
- * Revision: 1.0.0
- * Author: Duarte Figueiredo
- * Date: 29/09/2019
- */
 class ForegroundService : Service() {
 
     companion object {
