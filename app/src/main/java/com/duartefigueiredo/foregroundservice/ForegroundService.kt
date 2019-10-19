@@ -5,13 +5,24 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
+import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
+import android.view.WindowManager
+import android.widget.LinearLayout
 
 
-class ForegroundService : Service() {
+class ForegroundService : View.OnTouchListener, Service() {
+
+    override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+        return false
+    }
 
     companion object {
         const val CHANNEL_ID = "1"
@@ -39,12 +50,13 @@ class ForegroundService : Service() {
         startForeground(1, notification)
 
         //do heavy work on a background thread
-
+        startTouchWindow()
 
         //stopSelf();
 
         return START_NOT_STICKY
     }
+
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -56,6 +68,41 @@ class ForegroundService : Service() {
 
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(serviceChannel)
+        }
+    }
+
+    private fun startTouchWindow() {
+        val touchLayout = LinearLayout(this)
+
+        // set layout width 30 px and height is equal to full screen
+        val lp = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
+        )
+        touchLayout.layoutParams = lp
+        // set color if you want layout visible on screen
+        //touchLayout.setBackgroundColor(Color.CYAN);
+        // set on touch listener
+        touchLayout.setOnTouchListener(this)
+
+        // fetch window manager object
+        val mWindowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        // set layout parameter of window manager
+        val mParams = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT, // width is equal to full screen
+            WindowManager.LayoutParams.MATCH_PARENT, // height is equal to full screen
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, // Type Phone, These are non-application windows providing user interaction with the phone (in particular incoming calls).
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, // this window won't ever get key input focus
+            PixelFormat.RGBA_8888
+        )
+        mParams.gravity = Gravity.LEFT or Gravity.TOP
+        //Log.i(TAG, "add View")
+        val a = kotlin.runCatching {
+            mWindowManager.addView(touchLayout, mParams)
+        }
+
+        if(a.isFailure){
+            a.exceptionOrNull()?.printStackTrace()
         }
     }
 }
